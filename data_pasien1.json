@@ -1,0 +1,51 @@
+{
+    "00001": {
+        "id_pasien": "00001",
+        "nama": "Ranti",
+        "nomer_HP": "0812334455",
+        "tempat_lahir": "Bogor",
+        "tanggal_lahir": "30-05-1988",
+        "jadwal_kunjungan_terakhir": null,
+        "riwayat_penyakit": [
+            "Jantung",
+            "Paru-paru"
+        ],
+        "dokter": "dr. Yulianti, SpA"
+    },
+    "00002": {
+        "id_pasien": "00002",
+        "nama": "Rina",
+        "nomer_HP": "081285918535",
+        "tempat_lahir": "Soreang",
+        "tanggal_lahir": "23-03-1992",
+        "jadwal_kunjungan_terakhir": "06-04-2025",
+        "riwayat_penyakit": [
+            "Gigi Bolong"
+        ],
+        "dokter": "drg. Sora "
+    },
+    "00003": {
+        "id_pasien": "00003",
+        "nama": "Susi",
+        "nomer_HP": "0813447788",
+        "tempat_lahir": "Solo",
+        "tanggal_lahir": "28-04-1986",
+        "jadwal_kunjungan_terakhir": "30-03-2025",
+        "riwayat_penyakit": [
+            "Gigi Bolong"
+        ],
+        "dokter": "drg. Anto"
+    },
+    "00004": {
+        "id_pasien": "00004",
+        "nama": "Maria",
+        "nomer_HP": "081285918535",
+        "tempat_lahir": "Jakarta",
+        "tanggal_lahir": "30-05-1992",
+        "jadwal_kunjungan_terakhir": null,
+        "riwayat_penyakit": [
+            "Gigi Berlubang"
+        ],
+        "dokter": "drg. Herman"
+    }
+}
