@@ -1,0 +1,210 @@
+import json
+import os
+from datetime import datetime, timedelta
+
+class Pasien:
+    def __init__(self, id_pasien, nama, nomer_HP, tempat_lahir, tanggal_lahir, 
+                 jadwal_kunjungan_terakhir=None, riwayat_penyakit=None, dokter=None):
+        self.id_pasien = id_pasien
+        self.nama = nama
+        self.nomer_HP = nomer_HP
+        self.tempat_lahir = tempat_lahir
+        self.tanggal_lahir = tanggal_lahir
+        self.jadwal_kunjungan_terakhir = jadwal_kunjungan_terakhir
+        self.riwayat_penyakit = riwayat_penyakit or []
+        self.dokter = dokter
+
+    def hitung_usia(self):
+        try:
+            lahir = datetime.strptime(self.tanggal_lahir, "%d-%m-%Y")
+            today = datetime.today()
+            usia = today.year - lahir.year - ((today.month, today.day) < (lahir.month, lahir.day))
+            return usia
+        except:
+            return 0
+
+    def prediksi_kunjungan_berikutnya(self):
+        if not self.jadwal_kunjungan_terakhir:
+            return "-"
+        try:
+            tgl_kunjungan = datetime.strptime(self.jadwal_kunjungan_terakhir, "%d-%m-%Y")
+            prediksi = tgl_kunjungan + timedelta(days=14)
+            return prediksi.strftime("%d-%m-%Y")
+        except:
+            return "-"
+
+    def to_dict(self):
+        return {
+            "id_pasien": self.id_pasien,
+            "nama": self.nama,
+            "nomer_HP": self.nomer_HP,
+            "tempat_lahir": self.tempat_lahir,
+            "tanggal_lahir": self.tanggal_lahir,
+            "jadwal_kunjungan_terakhir": self.jadwal_kunjungan_terakhir,
+            "riwayat_penyakit": self.riwayat_penyakit,
+            "dokter": self.dokter
+        }
+
+    def __str__(self):
+        return f"{self.id_pasien:<6} {self.nama:<15} {self.nomer_HP:<13} {self.tempat_lahir:<10} {self.tanggal_lahir:<12} {self.hitung_usia():<4} {', '.join(self.riwayat_penyakit):<50} {self.dokter or '-':<20} {self.jadwal_kunjungan_terakhir or '-':<25} {self.prediksi_kunjungan_berikutnya():<25}"
+
+
+class DataPasienRumahSakit:
+    def __init__(self):
+        self.pasien = {}
+        self.load_from_file()
+
+    def save_to_file(self):
+        with open("data_pasien1.json", "w") as f:
+            json.dump({id_pasien: pasien.to_dict() for id_pasien, pasien in self.pasien.items()}, f, indent=4)
+
+    def load_from_file(self):
+        if os.path.exists("data_pasien1.json"):
+            with open("data_pasien1.json", "r") as f:
+                data = json.load(f)
+                self.pasien = {
+                    id_pasien: Pasien(**info) for id_pasien, info in data.items()
+                }
+
+    def generate_id(self):
+        if not self.pasien:
+            return "00001"
+        last_id = max(int(pid) for pid in self.pasien)
+        return str(last_id + 1).zfill(5)
+    
+    def validasi_tanggal(self, tanggal_str):
+        try:
+            datetime.strptime(tanggal_str, "%d-%m-%Y")
+            return True
+        except ValueError:
+            return False
+    
+    def add_pasien(self, **kwargs):
+        id_pasien = kwargs['id_pasien']
+        self.pasien[id_pasien] = Pasien(**kwargs)
+        self.save_to_file()
+        print("✅ Pasien berhasil ditambahkan.")
+
+    def display_all(self):
+        if not self.pasien:
+            print("Tidak ada data.")
+            return
+        print("\n{:<6} {:<15} {:<13} {:<10} {:<12} {:<4} {:<50} {:<20} {:<25} {:<25}".format(
+            "ID", "Nama", "No. HP", "Lahir", "Tgl Lahir", "Usia", "Penyakit", "Dokter", "Kunjungan Terakhir", "Kunjungan Berikut"))
+        print("-" * 200)
+        for pasien in self.pasien.values():
+            print(pasien)
+
+    def update_pasien(self, id_pasien, **kwargs):
+        if id_pasien not in self.pasien:
+            print("❌ ID pasien tidak ditemukan.")
+            return
+        pasien = self.pasien[id_pasien]
+        for key, value in kwargs.items():
+            if value:
+                setattr(pasien, key, value)
+        self.save_to_file()
+        print("✅ Data pasien diperbarui.")
+
+    def delete_pasien(self, id_pasien):
+        if id_pasien in self.pasien:
+            del self.pasien[id_pasien]
+            self.save_to_file()
+            print("✅ Pasien berhasil dihapus.")
+        else:
+            print("❌ Pasien tidak ditemukan.")
+
+    def cari_pasien(self, keyword):
+        found = [p for p in self.pasien.values() if keyword.lower() in p.nama.lower() or keyword == p.id_pasien]
+        if not found:
+            print("❌ Tidak ditemukan.")
+            return
+        print("\nHasil Pencarian:")
+        print("\n{:<6} {:<15} {:<13} {:<10} {:<12} {:<4} {:<50} {:<20} {:<25} {:<25}".format(
+            "ID", "Nama", "No. HP", "Lahir", "Tgl Lahir", "Usia", "Penyakit", "Dokter", "Kunjungan Terakhir", "Kunjungan Berikut"))
+        print("-" * 200)
+        for p in found:
+            print(p)
+
+
+if __name__ == "__main__":
+    system = DataPasienRumahSakit()
+    
+    while True:
+        print("\n📋 Sistem Informasi Pasien RS Cahaya Ilahi:")
+        print("1. Input Pasien")
+        print("2. Tampilkan Data Semua Pasien")
+        print("3. Update Pasien")
+        print("4. Hapus Data Pasien")
+        print("5. Cari Pasien")
+        print("6. Keluar")
+        pilihan = input("Pilih menu: ")
+
+        if pilihan == "1":
+            id_pasien = system.generate_id()
+            print(f"ID Pasien: {id_pasien}")
+            nama = input("Nama: ")
+            nomer_HP = input("No. HP: ")
+            tempat_lahir = input("Tempat Lahir: ")
+            
+            jadwal_kunjungan_terakhir = input("Kunjungan Terakhir (dd-mm-yyyy / kosongkan): ") or None
+            dokter = input("Nama Dokter (kosongkan jika tidak ada): ") or None
+            riwayat_penyakit = input("Riwayat Penyakit (pisahkan dengan koma): ").split(",")
+            riwayat_penyakit = [p.strip() for p in riwayat_penyakit if p.strip()]
+
+            while True:
+                tanggal_lahir = input("Masukkan Tanggal Lahir (dd-mm-yyyy): ")
+                if system.validasi_tanggal(tanggal_lahir):
+                    break
+                else:
+                    print("❌ Format salah. Contoh yang benar: 31-12-2000")
+
+            system.add_pasien(
+                id_pasien=id_pasien,
+                nama=nama,
+                nomer_HP=nomer_HP,
+                tempat_lahir=tempat_lahir,
+                tanggal_lahir=tanggal_lahir,
+                jadwal_kunjungan_terakhir=jadwal_kunjungan_terakhir,
+                riwayat_penyakit=riwayat_penyakit,
+                dokter=dokter
+            )
+
+        elif pilihan == "2":
+            system.display_all()
+
+        elif pilihan == "3":
+            id_pasien = input("ID Pasien yang ingin diupdate: ")
+            nama = input("Nama baru (kosongkan jika tidak diubah): ") or None
+            nomer_HP = input("No. HP baru: ") or None
+            tempat_lahir = input("Tempat Lahir baru: ") or None
+            tanggal_lahir = input("Tanggal Lahir baru (dd-mm-yyyy): ") or None
+            jadwal_kunjungan_terakhir = input("Kunjungan Terakhir (dd-mm-yyyy): ") or None
+            dokter = input("Dokter baru: ") or None
+            riwayat_input = input("Riwayat Penyakit baru (pisah koma / kosongkan jika tidak diubah): ")
+            riwayat_penyakit = [x.strip() for x in riwayat_input.split(",")] if riwayat_input else None
+            system.update_pasien(
+                id_pasien,
+                nama=nama,
+                nomer_HP=nomer_HP,
+                tempat_lahir=tempat_lahir,
+                tanggal_lahir=tanggal_lahir,
+                jadwal_kunjungan_terakhir=jadwal_kunjungan_terakhir,
+                dokter=dokter,
+                riwayat_penyakit=riwayat_penyakit
+            )
+
+        elif pilihan == "4":
+            id_pasien = input("Masukkan ID pasien: ")
+            system.delete_pasien(id_pasien)
+
+        elif pilihan == "5":
+            keyword = input("Cari berdasarkan nama atau ID: ")
+            system.cari_pasien(keyword)
+
+        elif pilihan == "6":
+            print("👋 Keluar dari program.")
+            break
+
+        else:
+            print("❌ Menu tidak valid.")
